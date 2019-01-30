@@ -3,12 +3,21 @@ import {
     Text,
     View,
     StyleSheet,
-    Button
+    Button,
+    Dimensions,
+    SectionList,
+    TouchableOpacity,
+    Image,
+    PanResponder
 } from 'react-native';
 import Userlist from './userlist'
 import LoginScene from './loginScene';
 import Constants from './globalStorage.js'
 import Servie from './servie.js'
+let windowsSize = {
+  width: Dimensions.get('window').width,
+  height: Dimensions.get("window").height
+};
 Constants.storage.load({
   key: 'loaginUsername',
   autoSync: true,
@@ -32,17 +41,82 @@ Constants.storage.load({
             break;
 	}
 })
+
+
+class Row extends Component {
+  _rowClick(i,item){
+    var cut = this.refs[i];
+    // this.props.updateParentState(i,item,cut);
+  };
+
+  render(){
+      return(
+          <TouchableOpacity style={styles.row} ref={this.props.data.name} onPress={()=>{this._rowClick(this.props.key,this.props.data.name)}}>
+              <View style={{flex:1, alignItems: 'center', justifyContent: 'center'}}>
+                  <Image style={ styles.icon } source={{ uri : this.props.data.img }}/>
+                  <Text>
+                      {this.props.data.name}{this.props.key}
+                  </Text>
+              </View>
+          </TouchableOpacity>
+      )
+  };
+};
+
 export default class HomeScene extends Component {
   constructor(props, context) {
-      super(props, context);
-      this.state = {
-        title: '首页',
-        flag:false,
-        username:"",
-        totleMaxNum:"",
-        mouthMaxNum:""
-      }
+    super(props, context);
+    let data = []
+    for(let i = 1;i<=10;i++){
+      let item = {}
+      item.img = "http://p1.meituan.net/deal/__39230311__3449301.jpg",
+      item.name = "饿了吗"+i
+      data.push(item)
     }
+    this.state = {
+      title: '首页',
+      flag:false,
+      username:"",
+      totleMaxNum:"",
+      mouthMaxNum:"",
+      rowData: [
+        {data: [data]}
+      ],
+    }
+    this._panResponder = {}
+  }
+  componentWillMount(evt, gestureState){
+    this._panResponder=PanResponder.create({
+      onStartShouldSetPanResponder:this.onStartShouldSetPanResponder,
+      onMoveShouldSetPanResponder:this.onMoveShouldSetPanResponder,
+      onPanResponderGrant:this.onPanResponderGrant,
+      onPanResponderMove:this.onPanResponderMove,
+      onPanResponderRelease:this.onPanResponderEnd,
+      onPanResponderTerminate:this.onPanResponderEnd,
+    });
+  }
+  //用户开始触摸屏幕的时候，是否愿意成为响应者；
+  onStartShouldSetPanResponder(evt, gestureState){
+    return true;
+    }
+    //在每一个触摸点开始移动的时候，再询问一次是否响应触摸交互；
+    onMoveShouldSetPanResponder(evt, gestureState){
+    return true ;
+    }
+    // 开始手势操作。给用户一些视觉反馈，让他们知道发生了什么事情！
+  onPanResponderGrant(evt, gestureState){
+    alert("1")
+  }
+  onPanResponderMove(evt, gestureState){
+    alert("2")
+  }
+
+  onPanResponderEnd(evt, gestureState){
+    alert("3")
+  }
+  onPanResponderEnd(evt, gestureState){
+    alert("4")
+  }
   backToLogin = () => {
     const {navigator} = this.props;
     if(Constants.username != ""){
@@ -109,6 +183,26 @@ export default class HomeScene extends Component {
       </View>
     )
   };
+  _renderItem =({item})=> {
+    return (
+    <View style = {{height:200,backgroundColor:'#f2f2f2'}} {...this._panResponder.panHandlers}>
+    <View style={styles.list} >
+        {
+           item.map((val, i)=>{
+                return <Row key={i} data={val} />
+            })
+        }
+    </View>
+    <View style={[styles.list,styles.lists]}>
+    {
+       item.map((val, i)=>{
+            return <Row key={i} data={val} />
+        })
+    }
+    </View>
+    </View>
+    )
+};
   render() {
       let v = this.state.flag ? <View style={styles.container}>
         <Text style={styles.content}>欢迎{this.state.username}登录</Text>
@@ -142,16 +236,48 @@ export default class HomeScene extends Component {
             </View>
             <View style={styles.line}></View>
               {v}
+              <SectionList style={{ marginTop: 0}}
+                 renderItem={this._renderItem}
+                 showsVerticalScrollIndicator={false}
+                 horizontal = {true}
+                 sections={this.state.rowData}>
+            </SectionList>
           </View>
       );
   };
 }
 const styles = StyleSheet.create({
+  list:{
+    flexDirection: 'row', //这里的属性很重要，可以学习下flex布局
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+    marginTop:10
+  },
+  lists:{
+    marginTop:16
+  },
+  listWrap: {
+    flexWrap: 'wrap',
+  },
   cont: {
     flexDirection:"row",
     justifyContent:"space-between",
-    borderColor:"#dddddd",
     borderWidth:1,
+  },
+  row:{
+    justifyContent: 'center',
+    // alignItems: 'center',
+    width: windowsSize.width/5,
+    height: windowsSize.width/5,
+    
+  },
+  icon : {
+    height : windowsSize.width/7,
+    width : windowsSize.width/7,
+    marginTop : 10,
+    marginBottom : 10,
+    marginLeft : 8,
+    borderRadius:15
   },
   link: {
     flexDirection:"row",

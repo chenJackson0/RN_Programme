@@ -76,7 +76,6 @@ export default class LoginScene extends Component {
       // UserService.getSet
       let dataItem = UserService.Set()
       let modelDate = loginModel.userItem(dataItem)
-      alert(JSON.stringify(modelDate))
       Constants.username = this.username
       Constants.storage.save({
         key: 'loaginUsername',  // 注意:请不要在key中使用_下划线符号!
